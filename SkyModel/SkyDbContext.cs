@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Metadata;
 using SkyModel.Models;
 using System;
@@ -25,7 +24,7 @@ public class SkyDbContext : DbContext
 
 	// DEBUG / RELEASE
 #if DEBUG
-	public const string ConnectionString = $"";
+	public const string ConnectionString = $"data source=LENOVO227\\SQLEXPRESS;initial catalog=SkyEagle;trusted_connection=true;trustservercertificate=true";
 #else
 	public const string ConnectionString = $"";
 #endif
@@ -65,7 +64,12 @@ public class SkyDbContext : DbContext
 		return await base.SaveChangesAsync(cancellationToken);
 	}
 
-	public DbSet<Realpty> Realptys { get; set; }
+	public DbSet<User> Users { get; set; }
+	public DbSet<Category> Categories { get; set; }
+	public DbSet<MinIO> MinIOs { get; set; }
+	public DbSet<Product> Products { get; set; }
+	public DbSet<ProductDetail> ProductDetails { get; set; }
+	public DbSet<NewsArticle> NewsArticles { get; set; }
 }
 
 //public class MyMigration : IDesignTimeDbContextFactory<SkyDbContext> // for code first
