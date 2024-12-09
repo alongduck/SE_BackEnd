@@ -41,11 +41,18 @@ namespace MyModels
 
             var categoryId = runtimeEntityType.AddProperty(
                 "CategoryId",
-                typeof(long),
+                typeof(long?),
                 propertyInfo: typeof(Product).GetProperty("CategoryId", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                fieldInfo: typeof(Product).GetField("<CategoryId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                sentinel: 0L);
+                fieldInfo: typeof(Product).GetField("<CategoryId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly));
             categoryId.AddAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
+
+            var detailId = runtimeEntityType.AddProperty(
+                "DetailId",
+                typeof(long?),
+                propertyInfo: typeof(Product).GetProperty("DetailId", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(Product).GetField("<DetailId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                nullable: true);
+            detailId.AddAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
 
             var hot = runtimeEntityType.AddProperty(
                 "Hot",
@@ -70,14 +77,6 @@ namespace MyModels
                 sentinel: 0.0);
             price.AddAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
 
-            var productDetailId = runtimeEntityType.AddProperty(
-                "ProductDetailId",
-                typeof(long),
-                propertyInfo: typeof(Product).GetProperty("ProductDetailId", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                fieldInfo: typeof(Product).GetField("<ProductDetailId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                sentinel: 0L);
-            productDetailId.AddAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
-
             var thumbnail = runtimeEntityType.AddProperty(
                 "Thumbnail",
                 typeof(string),
@@ -96,7 +95,7 @@ namespace MyModels
 
             var userId = runtimeEntityType.AddProperty(
                 "UserId",
-                typeof(string),
+                typeof(long?),
                 propertyInfo: typeof(Product).GetProperty("UserId", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 fieldInfo: typeof(Product).GetField("<UserId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly));
             userId.AddAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
@@ -114,10 +113,12 @@ namespace MyModels
                 new[] { categoryId });
 
             var index0 = runtimeEntityType.AddIndex(
-                new[] { name });
+                new[] { detailId },
+                unique: true);
+            index0.AddAnnotation("Relational:Filter", "[DetailId] IS NOT NULL");
 
             var index1 = runtimeEntityType.AddIndex(
-                new[] { productDetailId });
+                new[] { name });
 
             var index2 = runtimeEntityType.AddIndex(
                 new[] { userId });
@@ -154,11 +155,11 @@ namespace MyModels
 
         public static RuntimeForeignKey CreateForeignKey2(RuntimeEntityType declaringEntityType, RuntimeEntityType principalEntityType)
         {
-            var runtimeForeignKey = declaringEntityType.AddForeignKey(new[] { declaringEntityType.FindProperty("ProductDetailId") },
+            var runtimeForeignKey = declaringEntityType.AddForeignKey(new[] { declaringEntityType.FindProperty("DetailId") },
                 principalEntityType.FindKey(new[] { principalEntityType.FindProperty("Id") }),
                 principalEntityType,
                 deleteBehavior: DeleteBehavior.ClientCascade,
-                required: true);
+                unique: true);
 
             var objProductDetail = declaringEntityType.AddNavigation("ObjProductDetail",
                 runtimeForeignKey,

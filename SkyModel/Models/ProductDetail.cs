@@ -45,7 +45,9 @@ namespace SkyModel.Models
 		[ForeignKey(nameof(ProductId))]
 		public virtual Product ObjProduct { get; set; } = null!;
 
-		public long ProductId { get; set; }
+		[Required(ErrorMessage = "{0} không được để trống")]
+		[Display(Name = "Sản phẩm")]
+		public long? ProductId { get; set; }
 
 		[InverseProperty(nameof(MinIO.ObjProductDetail))]
 		public virtual ICollection<MinIO> Images { get; set; } = [];

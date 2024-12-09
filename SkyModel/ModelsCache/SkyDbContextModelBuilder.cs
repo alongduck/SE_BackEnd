@@ -11,7 +11,7 @@ namespace MyModels
     public partial class SkyDbContextModel
     {
         private SkyDbContextModel()
-            : base(skipDetectChanges: false, modelId: new Guid("f9127650-d311-4297-8f01-702e6cff66e8"), entityTypeCount: 6)
+            : base(skipDetectChanges: false, modelId: new Guid("f464eabc-a56f-4936-99ab-c46b801a0746"), entityTypeCount: 6)
         {
         }
 

@@ -1,14 +1,15 @@
 ﻿using SkyDTO;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SkyModel.Models
 {
 	public class User : UserDTO
 	{
-		[Key]
+		[Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		[Required(ErrorMessage = "{0} không được để trống")]
-		public new string Id { get; set; } = string.Empty;
+		public new long Id { get; set; }
 
 		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Tên")]

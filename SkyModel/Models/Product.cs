@@ -34,20 +34,19 @@ namespace SkyModel.Models
 
 		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Danh mục")]
-		public long CategoryId { get; set; }
+		public new long? CategoryId { get; set; }
 
-		[ForeignKey(nameof(ProductDetailId))]
+		[ForeignKey(nameof(DetailId))]
 		public virtual ProductDetail ObjProductDetail { get; set; } = null!;
 
-		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Chi tiết")]
-		public long ProductDetailId { get; set; }
+		public new long? DetailId { get; set; }
 
 		[ForeignKey(nameof(UserId))]
 		public virtual User ObjUser { get; set; } = null!;
 
 		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Người đăng")]
-		public string UserId { get; set; } = string.Empty;
+		public new long? UserId { get; set; }
 	}
 }

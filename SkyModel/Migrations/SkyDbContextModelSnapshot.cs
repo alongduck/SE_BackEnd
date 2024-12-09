@@ -112,6 +112,9 @@ namespace SkyModel.Migrations
                     b.Property<long>("CategoryId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("DetailId")
+                        .HasColumnType("bigint");
+
                     b.Property<bool>("Hot")
                         .HasColumnType("bit");
 
@@ -122,26 +125,24 @@ namespace SkyModel.Migrations
                     b.Property<double>("Price")
                         .HasColumnType("float");
 
-                    b.Property<long>("ProductDetailId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Thumbnail")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("TimeUp")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("Name");
+                    b.HasIndex("DetailId")
+                        .IsUnique()
+                        .HasFilter("[DetailId] IS NOT NULL");
 
-                    b.HasIndex("ProductDetailId");
+                    b.HasIndex("Name");
 
                     b.HasIndex("UserId");
 
@@ -196,8 +197,11 @@ namespace SkyModel.Migrations
 
             modelBuilder.Entity("SkyModel.Models.User", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Avatar")
                         .HasColumnType("nvarchar(max)");
@@ -250,10 +254,9 @@ namespace SkyModel.Migrations
                         .IsRequired();
 
                     b.HasOne("SkyModel.Models.ProductDetail", "ObjProductDetail")
-                        .WithMany()
-                        .HasForeignKey("ProductDetailId")
-                        .OnDelete(DeleteBehavior.ClientCascade)
-                        .IsRequired();
+                        .WithOne()
+                        .HasForeignKey("SkyModel.Models.Product", "DetailId")
+                        .OnDelete(DeleteBehavior.ClientCascade);
 
                     b.HasOne("SkyModel.Models.User", "ObjUser")
                         .WithMany()

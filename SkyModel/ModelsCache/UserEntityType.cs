@@ -26,11 +26,13 @@ namespace MyModels
 
             var id = runtimeEntityType.AddProperty(
                 "Id",
-                typeof(string),
+                typeof(long),
                 propertyInfo: typeof(User).GetProperty("Id", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 fieldInfo: typeof(User).GetField("<Id>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                afterSaveBehavior: PropertySaveBehavior.Throw);
-            id.AddAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
+                valueGenerated: ValueGenerated.OnAdd,
+                afterSaveBehavior: PropertySaveBehavior.Throw,
+                sentinel: 0L);
+            id.AddAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             var avatar = runtimeEntityType.AddProperty(
                 "Avatar",

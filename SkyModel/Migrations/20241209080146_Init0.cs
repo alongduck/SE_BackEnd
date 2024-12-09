@@ -43,7 +43,8 @@ namespace SkyModel.Migrations
 				name: "Users",
 				columns: table => new
 				{
-					Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+					Id = table.Column<long>(type: "bigint", nullable: false)
+						.Annotation("SqlServer:Identity", "1, 1"),
 					Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
 					PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
 					Avatar = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -111,8 +112,8 @@ namespace SkyModel.Migrations
 					Hot = table.Column<bool>(type: "bit", nullable: false),
 					TimeUp = table.Column<DateTime>(type: "datetime2", nullable: false),
 					CategoryId = table.Column<long>(type: "bigint", nullable: false),
-					ProductDetailId = table.Column<long>(type: "bigint", nullable: false),
-					UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+					DetailId = table.Column<long>(type: "bigint", nullable: true),
+					UserId = table.Column<long>(type: "bigint", nullable: false)
 				},
 				constraints: table =>
 				{
@@ -123,8 +124,8 @@ namespace SkyModel.Migrations
 						principalTable: "Categories",
 						principalColumn: "Id");
 					table.ForeignKey(
-						name: "FK_Products_ProductDetails_ProductDetailId",
-						column: x => x.ProductDetailId,
+						name: "FK_Products_ProductDetails_DetailId",
+						column: x => x.DetailId,
 						principalTable: "ProductDetails",
 						principalColumn: "Id");
 					table.ForeignKey(
@@ -155,14 +156,16 @@ namespace SkyModel.Migrations
 				column: "CategoryId");
 
 			migrationBuilder.CreateIndex(
+				name: "IX_Products_DetailId",
+				table: "Products",
+				column: "DetailId",
+				unique: true,
+				filter: "[DetailId] IS NOT NULL");
+
+			migrationBuilder.CreateIndex(
 				name: "IX_Products_Name",
 				table: "Products",
 				column: "Name");
-
-			migrationBuilder.CreateIndex(
-				name: "IX_Products_ProductDetailId",
-				table: "Products",
-				column: "ProductDetailId");
 
 			migrationBuilder.CreateIndex(
 				name: "IX_Products_UserId",
@@ -188,7 +191,7 @@ namespace SkyModel.Migrations
 		protected override void Down(MigrationBuilder migrationBuilder)
 		{
 			migrationBuilder.DropForeignKey(
-				name: "FK_Products_ProductDetails_ProductDetailId",
+				name: "FK_Products_ProductDetails_DetailId",
 				table: "Products");
 
 			migrationBuilder.DropTable(

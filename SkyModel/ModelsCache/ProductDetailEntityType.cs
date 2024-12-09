@@ -85,10 +85,9 @@ namespace MyModels
 
             var productId = runtimeEntityType.AddProperty(
                 "ProductId",
-                typeof(long),
+                typeof(long?),
                 propertyInfo: typeof(ProductDetail).GetProperty("ProductId", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                fieldInfo: typeof(ProductDetail).GetField("<ProductId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                sentinel: 0L);
+                fieldInfo: typeof(ProductDetail).GetField("<ProductId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly));
             productId.AddAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
 
             var structure = runtimeEntityType.AddProperty(

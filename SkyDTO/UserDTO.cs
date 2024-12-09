@@ -5,7 +5,7 @@ namespace SkyDTO
 	public class UserDTO
 	{
 		[Required(ErrorMessage = "{0} không được để trống")]
-		public string Id { get; set; } = string.Empty;
+		public long Id { get; set; }
 
 		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Tên")]
