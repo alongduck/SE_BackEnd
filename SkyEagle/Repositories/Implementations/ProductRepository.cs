@@ -20,12 +20,12 @@ namespace SkyEagle.Repositories.Implementations
 			Product? product = await _context.Products.FindAsync([id], cancellationToken: ct);
 			if (product == null)
 				return null;
-			return ItemToDTO(product);
+			return ProductToDTO(product);
 		}
 
 		public async Task<IEnumerable<ProductDTO>> GetAllAsync(CancellationToken ct = default)
 		{
-			return await _context.Products.Select(x => ItemToDTO(x)).ToListAsync(ct);
+			return await _context.Products.Select(x => ProductToDTO(x, false)).ToListAsync(ct);
 		}
 
 		public async Task<ProductDTO> AddAsync(ProductDTO productDTO, CancellationToken ct = default)
@@ -42,7 +42,29 @@ namespace SkyEagle.Repositories.Implementations
 			try
 			{
 				// Tạo chi tiết sản phẩm
-				ProductDetail productDetail = new();
+				ProductDetail productDetail;
+				if (productDTO.Detail != null)
+				{
+					// Add detail từ api
+					ProductDetailDTO productDetailDTO = productDTO.Detail;
+					productDetail = new()
+					{
+						Description = productDetailDTO.Description,
+						Address = productDetailDTO.Address,
+						PricePerSquareMeter = productDetailDTO.PricePerSquareMeter,
+						Features = productDetailDTO.Features,
+						Area = productDetailDTO.Area,
+						Length = productDetailDTO.Length,
+						Width = productDetailDTO.Width,
+						Structure = productDetailDTO.Structure
+					};
+				}
+				else
+				{
+					// Tạo mới detail
+					productDetail = new();
+				}
+
 				_context.ProductDetails.Add(productDetail);
 				await _context.SaveChangesAsync(ct);
 
@@ -64,7 +86,7 @@ namespace SkyEagle.Repositories.Implementations
 				// Commit transaction
 				await transaction.CommitAsync(ct);
 
-				return ItemToDTO(product);
+				return ProductToDTO(product);
 			}
 			catch
 			{
@@ -85,6 +107,19 @@ namespace SkyEagle.Repositories.Implementations
 			product.TimeUp = productDTO.TimeUp;
 			product.CategoryId = productDTO.CategoryId;
 			product.UserId = productDTO.UserId;
+			if (productDTO.Detail != null)
+			{
+				// Update detail từ api
+				ProductDetailDTO productDetailDTO = productDTO.Detail;
+				product.ObjDetail.Description = productDetailDTO.Description;
+				product.ObjDetail.Address = productDetailDTO.Address;
+				product.ObjDetail.PricePerSquareMeter = productDetailDTO.PricePerSquareMeter;
+				product.ObjDetail.Features = productDetailDTO.Features;
+				product.ObjDetail.Area = productDetailDTO.Area;
+				product.ObjDetail.Length = productDetailDTO.Length;
+				product.ObjDetail.Width = productDetailDTO.Width;
+				product.ObjDetail.Structure = productDetailDTO.Structure;
+			}
 			await _context.SaveChangesAsync(ct);
 		}
 
@@ -103,7 +138,7 @@ namespace SkyEagle.Repositories.Implementations
 			return await _context.Products.AnyAsync(e => e.Id == id, ct);
 		}
 
-		private static ProductDTO ItemToDTO(Product product) =>
+		private static ProductDTO ProductToDTO(Product product, bool loadDetail = true) =>
 		   new()
 		   {
 			   Id = product.Id,
@@ -113,7 +148,22 @@ namespace SkyEagle.Repositories.Implementations
 			   Hot = product.Hot,
 			   TimeUp = product.TimeUp,
 			   CategoryId = product.CategoryId,
-			   UserId = product.UserId
+			   UserId = product.UserId,
+			   Detail = loadDetail ? ProductDetailToDTO(product.ObjDetail) : null
 		   };
+
+		private static ProductDetailDTO ProductDetailToDTO(ProductDetail productDetail) =>
+			new()
+			{
+				Id = productDetail.Id,
+				Description = productDetail.Description,
+				Address = productDetail.Address,
+				PricePerSquareMeter = productDetail.PricePerSquareMeter,
+				Features = productDetail.Features,
+				Area = productDetail.Area,
+				Length = productDetail.Length,
+				Width = productDetail.Width,
+				Structure = productDetail.Structure
+			};
 	}
 }

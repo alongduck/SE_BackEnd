@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SkyDTO
 {
@@ -31,5 +32,9 @@ namespace SkyDTO
 		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Người đăng")]
 		public long? UserId { get; set; }
+
+		[NotMapped]
+		[Display(Name = "Chi tiết")]
+		public ProductDetailDTO? Detail { get; set; }
 	}
 }
