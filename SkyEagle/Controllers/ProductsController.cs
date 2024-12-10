@@ -30,9 +30,9 @@ namespace SkyEagle.Controllers
 
 		// GET: api/product/5
 		[HttpGet("{id}")]
-		public async Task<ActionResult<ProductDTO>> GetProduct(long id, CancellationToken ct = default)
+		public async Task<ActionResult<ProductResponseDTO>> GetProduct(long id, CancellationToken ct = default)
 		{
-			ProductDTO? product = await _productRepository.GetByIdAsync(id, ct);
+			ProductResponseDTO? product = await _productRepository.GetByIdAsync(id, ct);
 			if (product == null)
 				return NotFound();
 			return product;

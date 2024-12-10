@@ -17,12 +17,12 @@ namespace SkyEagle.Repositories.Implementations
 	{
 		private readonly SkyDbContext _context = context;
 
-		public async Task<ProductDTO?> GetByIdAsync(long id, CancellationToken ct = default)
+		public async Task<ProductResponseDTO?> GetByIdAsync(long id, CancellationToken ct = default)
 		{
 			Product? product = await _context.Products.FindAsync([id], cancellationToken: ct);
 			if (product == null)
 				return null;
-			return ProductToDTO(product);
+			return ProductToResponseDTO(product);
 		}
 
 		public async Task<PaginationResult<ProductGridDTO>> GetAllAsync(int pageNumber, int pageSize, string? search = null, CancellationToken ct = default)
@@ -49,7 +49,7 @@ namespace SkyEagle.Repositories.Implementations
 					TimeUp = product.TimeUp,
 					Category = new()
 					{
-						Id = product.CategoryId!.Value,
+						Id = product.ObjCategory.Id,
 						Name = product.ObjCategory.Name
 					}
 				})
@@ -243,7 +243,7 @@ namespace SkyEagle.Repositories.Implementations
 			await myMinIO.RemoveFilesAsync(removedOnlineFilePaths, ct);
 		}
 
-		private static ProductDTO ProductToDTO(Product product, bool loadDetail = true) =>
+		private static ProductResponseDTO ProductToResponseDTO(Product product) =>
 		   new()
 		   {
 			   Id = product.Id,
@@ -252,10 +252,35 @@ namespace SkyEagle.Repositories.Implementations
 			   Price = product.Price,
 			   Hot = product.Hot,
 			   TimeUp = product.TimeUp,
-			   CategoryId = product.CategoryId,
-			   UserId = product.UserId,
-			   Detail = loadDetail ? ProductDetailToDTO(product.ObjDetail) : null
+			   Category = new()
+			   {
+				   Id = product.ObjCategory.Id,
+				   Name = product.ObjCategory.Name,
+			   },
+			   User = new()
+			   {
+				   Id = product.UserId!.Value,
+				   Name = product.ObjUser.Name,
+				   PhoneNumber = product.ObjUser.PhoneNumber,
+				   Avatar = product.ObjUser.Avatar,
+				   IsActive = product.ObjUser.IsActive
+			   },
+			   Detail = ProductDetailToDTO(product.ObjDetail)
 		   };
+
+		private static ProductDTO ProductToDTO(Product product) =>
+			new()
+			{
+				Id = product.Id,
+				Name = product.Name,
+				Thumbnail = product.Thumbnail,
+				Price = product.Price,
+				Hot = product.Hot,
+				TimeUp = product.TimeUp,
+				CategoryId = product.CategoryId,
+				UserId = product.UserId,
+				Detail = ProductDetailToDTO(product.ObjDetail)
+			};
 
 		private static ProductDetailDTO ProductDetailToDTO(ProductDetail productDetail) =>
 			new()
