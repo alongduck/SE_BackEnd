@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SkyDTO.Commons
 {
-	public class ProductGridDTO
+	public class ProductGridItemDTO
 	{
 		public long Id { get; set; }
 

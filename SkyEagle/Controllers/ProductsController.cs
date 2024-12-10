@@ -24,7 +24,7 @@ namespace SkyEagle.Controllers
 		{
 			if (pageNumber <= 0 || pageSize <= 0)
 				return BadRequest("Số trang và size trang phải lớn hơn 0.");
-			PaginationResult<ProductGridDTO> result = await _productRepository.GetAllAsync(pageNumber, pageSize, search, ct);
+			PaginationResult<ProductGridItemDTO> result = await _productRepository.GetAllAsync(pageNumber, pageSize, search, ct);
 			return Ok(result);
 		}
 
