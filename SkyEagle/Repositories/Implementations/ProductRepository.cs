@@ -115,60 +115,91 @@ namespace SkyEagle.Repositories.Implementations
 
 		public async Task UpdateAsync(ProductDTO productDTO, CancellationToken ct = default)
 		{
-			Product product = await _context.Products.FindAsync([productDTO.Id], cancellationToken: ct)
-				?? throw new KeyNotFoundException($"Không tìm thấy sản phẩm");
-			product.Name = productDTO.Name;
-			product.Thumbnail = productDTO.Thumbnail;
-			product.Price = productDTO.Price;
-			product.Hot = productDTO.Hot;
-			product.TimeUp = productDTO.TimeUp;
-			product.CategoryId = productDTO.CategoryId;
-			product.UserId = productDTO.UserId;
-			if (productDTO.Detail != null)
+			using var transaction = await _context.Database.BeginTransactionAsync(ct);
+			try
 			{
-				// Update detail từ api
-				ProductDetailDTO productDetailDTO = productDTO.Detail;
-				product.ObjDetail.Description = productDetailDTO.Description;
-				product.ObjDetail.Address = productDetailDTO.Address;
-				product.ObjDetail.PricePerSquareMeter = productDetailDTO.PricePerSquareMeter;
-				product.ObjDetail.Features = productDetailDTO.Features;
-				product.ObjDetail.Area = productDetailDTO.Area;
-				product.ObjDetail.Length = productDetailDTO.Length;
-				product.ObjDetail.Width = productDetailDTO.Width;
-				product.ObjDetail.Structure = productDetailDTO.Structure;
-
-				if (productDetailDTO.Images?.Count > 0)
+				Product product = await _context.Products.FindAsync([productDTO.Id], cancellationToken: ct)
+					?? throw new KeyNotFoundException($"Không tìm thấy sản phẩm");
+				product.Name = productDTO.Name;
+				product.Thumbnail = productDTO.Thumbnail;
+				product.Price = productDTO.Price;
+				product.Hot = productDTO.Hot;
+				product.TimeUp = productDTO.TimeUp;
+				product.CategoryId = productDTO.CategoryId;
+				product.UserId = productDTO.UserId;
+				if (productDTO.Detail != null)
 				{
-					List<long> imageIds = productDetailDTO.Images.Select(x => x.Id).ToList();
+					// Update detail từ api
+					ProductDetailDTO productDetailDTO = productDTO.Detail;
+					product.ObjDetail.Description = productDetailDTO.Description;
+					product.ObjDetail.Address = productDetailDTO.Address;
+					product.ObjDetail.PricePerSquareMeter = productDetailDTO.PricePerSquareMeter;
+					product.ObjDetail.Features = productDetailDTO.Features;
+					product.ObjDetail.Area = productDetailDTO.Area;
+					product.ObjDetail.Length = productDetailDTO.Length;
+					product.ObjDetail.Width = productDetailDTO.Width;
+					product.ObjDetail.Structure = productDetailDTO.Structure;
 
-					// Remove những hình hiện tại
-					await _context.MinIOs
-						.Where(x => x.ProductDetailId == product.ObjDetail.Id && !imageIds.Contains(x.Id))
-						.ExecuteDeleteAsync(ct);
+					if (productDetailDTO.Images?.Count > 0)
+					{
+						List<long> imageIds = productDetailDTO.Images.Select(x => x.Id).ToList();
 
-					// Update những hình mới vào
-					await _context.MinIOs
-						.Where(x => imageIds.Contains(x.Id))
-						.ExecuteUpdateAsync(s => s.SetProperty(m => m.ProductDetailId, product.ObjDetail.Id), ct);
+						// Remove những hình hiện tại trong db và minIO
+						List<MinIO> removedMinIOs = await _context.MinIOs
+							.Where(x => x.ProductDetailId == product.ObjDetail.Id && !imageIds.Contains(x.Id))
+							.ToListAsync(ct);
+						if (removedMinIOs.Count > 0)
+						{
+							List<string> removedOnlineFilePaths = removedMinIOs.Select(x => x.FileName).ToList();
+							await RemoveMinIOFilesAsync(removedOnlineFilePaths, ct);
+							context.MinIOs.RemoveRange(removedMinIOs);
+						}
+
+						// Update khóa ngoại những hình mới vào
+						await _context.MinIOs
+							.Where(x => imageIds.Contains(x.Id))
+							.ExecuteUpdateAsync(s => s.SetProperty(m => m.ProductDetailId, product.ObjDetail.Id), ct);
+					}
+					else
+					{
+						// Không có hình thì remove hết khóa ngoại hình đi
+						List<MinIO> removedMinIOs = await _context.MinIOs
+							.Where(x => x.ProductDetailId == product.ObjDetail.Id)
+							.ToListAsync(ct);
+						if (removedMinIOs.Count > 0)
+						{
+							List<string> removedOnlineFilePaths = removedMinIOs.Select(x => x.FileName).ToList();
+							await RemoveMinIOFilesAsync(removedOnlineFilePaths, ct);
+							_context.MinIOs.RemoveRange(removedMinIOs);
+						}
+					}
 				}
-				else
-				{
-					// Không có hình thì remove hết khóa ngoại hình đi
-					await _context.MinIOs
-						.Where(x => x.ProductDetailId == product.ObjDetail.Id)
-						.ExecuteDeleteAsync(ct);
-				}
+				await _context.SaveChangesAsync(ct);
+				await transaction.CommitAsync(ct);
 			}
-			await _context.SaveChangesAsync(ct);
+			catch
+			{
+				// Rollback the transaction
+				await transaction.RollbackAsync(ct);
+				throw;
+			}
 		}
 
 		public async Task DeleteAsync(long id, CancellationToken ct = default)
 		{
-			Product? product = await _context.Products.Include(p => p.ObjDetail).FirstOrDefaultAsync(x => x.Id == id, ct);
+			Product? product = await _context.Products.Include(p => p.ObjDetail).ThenInclude(d => d.Images).FirstOrDefaultAsync(x => x.Id == id, ct);
 			if (product != null)
 			{
 				if (product.ObjDetail != null)
+				{
+					if (product.ObjDetail.Images.Count > 0)
+					{
+						List<string> removedOnlineFilePaths = product.ObjDetail.Images.Select(x => x.FileName).ToList();
+						await RemoveMinIOFilesAsync(removedOnlineFilePaths, ct);
+						_context.MinIOs.RemoveRange(product.ObjDetail.Images);
+					}
 					_context.ProductDetails.Remove(product.ObjDetail);
+				}
 				_context.Products.Remove(product);
 				await _context.SaveChangesAsync(ct);
 			}
@@ -177,6 +208,12 @@ namespace SkyEagle.Repositories.Implementations
 		public async Task<bool> ExistsAsync(long id, CancellationToken ct = default)
 		{
 			return await _context.Products.AsNoTracking().AnyAsync(e => e.Id == id, ct);
+		}
+
+		private static async Task RemoveMinIOFilesAsync(List<string> removedOnlineFilePaths, CancellationToken ct = default)
+		{
+			using MyMinIO myMinIO = MinIORepository.CreateMinIOInstance();
+			await myMinIO.RemoveFilesAsync(removedOnlineFilePaths, ct);
 		}
 
 		private static ProductDTO ProductToDTO(Product product, bool loadDetail = true) =>

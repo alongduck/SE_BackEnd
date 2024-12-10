@@ -36,8 +36,6 @@ namespace SkyEagle.Controllers
 		[HttpPost("image")]
 		public async Task<IActionResult> UploadImage(IFormFile image, CancellationToken ct = default)
 		{
-			if (image.Length == 0 || string.IsNullOrEmpty(image.FileName))
-				return BadRequest("File không hợp lệ");
 			try
 			{
 				ImageDTO createdImage = await _minIORepository.UploadImageAsync(image, ct);

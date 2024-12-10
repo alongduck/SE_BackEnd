@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 using SkyDTO.Commons;
 using SkyEagle.Classes;
 using SkyEagle.Repositories.Interfaces;
@@ -21,7 +23,7 @@ namespace SkyEagle.Repositories.Implementations
 		internal static string MinIOSecretKey = string.Empty;
 		private const string Bucket = "skyeagle";
 
-		private static MyMinIO CreateMinIOInstance() => new(URI, MinIOAccessKey, MinIOSecretKey, Bucket);
+		internal static MyMinIO CreateMinIOInstance() => new(URI, MinIOAccessKey, MinIOSecretKey, Bucket);
 
 		public async Task<KeyValuePair<string, byte[]>?> GetFileAsync(long id, CancellationToken ct = default)
 		{
@@ -45,20 +47,30 @@ namespace SkyEagle.Repositories.Implementations
 				throw new InvalidOperationException($"File không hợp lệ: {image.FileName}");
 
 			// Tạo tên file
-			string onlineFilePath = Path.Combine(Guid.NewGuid().ToString() + Path.GetExtension(image.FileName));
+			string fileName = $"{DateTime.Now.Ticks}-{image.FileName}";
 
 			using MemoryStream memoryStream = new();
 			await image.CopyToAsync(memoryStream, ct);
 			memoryStream.Seek(0, SeekOrigin.Begin);
+			IImageFormat detectedFormat = Image.DetectFormat(memoryStream) ?? throw new InvalidOperationException($"Định dạng ảnh không được hỗ trợ: {image.FileName}");
+			byte[] fileBytes = [];
 
-			// Xác định loại file
-			string contentType = image.ContentType ?? "application/octet-stream";
+			try
+			{
+				// Convert file ảnh thành webp
+				fileBytes = await MyWebP.EncodeFromMemoryStreamAsync(memoryStream, ct: ct);
+			}
+			catch
+			{
+				throw new InvalidOperationException("Có Lỗi đã xảy ra trong lúc upload file hình ảnh");
+			}
+			fileName = Path.ChangeExtension(fileName, ".webp");
 
 			// Upload file lên minIO
 			var response = await myMinIO.UploadFileAsync(
-				onlineFilePath,
-				memoryStream.ToArray(),
-				contentType,
+				fileName,
+				fileBytes,
+				detectedFormat.DefaultMimeType,
 				ct
 			);
 
@@ -69,7 +81,7 @@ namespace SkyEagle.Repositories.Implementations
 			// Thêm hình vào db
 			MinIO result = new()
 			{
-				FileName = onlineFilePath,
+				FileName = fileName,
 				ETag = response.Etag,
 				Size = response.Size
 			};
@@ -87,10 +99,10 @@ namespace SkyEagle.Repositories.Implementations
 			MinIO? minIO = await _context.MinIOs.FirstOrDefaultAsync(x => x.Id == id, ct);
 			if (minIO != null)
 			{
-				_context.MinIOs.Remove(minIO);
-				await _context.SaveChangesAsync(ct);
 				using MyMinIO myMinIO = CreateMinIOInstance();
 				await myMinIO.RemoveFileAsync(minIO.FileName, ct);
+				_context.MinIOs.Remove(minIO);
+				await _context.SaveChangesAsync(ct);
 			}
 		}
 	}
