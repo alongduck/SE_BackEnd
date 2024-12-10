@@ -20,11 +20,11 @@ namespace SkyEagle.Controllers
 
 		// GET: api/product
 		[HttpGet]
-		public async Task<IActionResult> GetProducts([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken ct = default)
+		public async Task<IActionResult> GetProducts([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, CancellationToken ct = default)
 		{
 			if (pageNumber <= 0 || pageSize <= 0)
 				return BadRequest("Số trang và size trang phải lớn hơn 0.");
-			PaginationResult<ProductGridDTO> result = await _productRepository.GetAllAsync(pageNumber, pageSize, ct);
+			PaginationResult<ProductGridDTO> result = await _productRepository.GetAllAsync(pageNumber, pageSize, search, ct);
 			return Ok(result);
 		}
 

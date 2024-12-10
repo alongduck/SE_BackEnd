@@ -25,9 +25,14 @@ namespace SkyEagle.Repositories.Implementations
 			return ProductToDTO(product);
 		}
 
-		public async Task<PaginationResult<ProductGridDTO>> GetAllAsync(int pageNumber, int pageSize, CancellationToken ct = default)
+		public async Task<PaginationResult<ProductGridDTO>> GetAllAsync(int pageNumber, int pageSize, string? search = null, CancellationToken ct = default)
 		{
 			IQueryable<Product> query = _context.Products.AsNoTracking();
+
+			// Search nếu có key
+			if (!string.IsNullOrWhiteSpace(search))
+				query = query.Where(product => EF.Functions.Like(product.Name, $"%{search}%"));
+
 			int totalCount = await query.CountAsync(ct);
 			List<ProductGridDTO> products = await query
 				.OrderByDescending(product => product.Id)
