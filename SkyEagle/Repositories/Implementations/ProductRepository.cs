@@ -152,7 +152,7 @@ namespace SkyEagle.Repositories.Implementations
 						{
 							List<string> removedOnlineFilePaths = removedMinIOs.Select(x => x.FileName).ToList();
 							await RemoveMinIOFilesAsync(removedOnlineFilePaths, ct);
-							context.MinIOs.RemoveRange(removedMinIOs);
+							_context.MinIOs.RemoveRange(removedMinIOs);
 						}
 
 						// Update khóa ngoại những hình mới vào
