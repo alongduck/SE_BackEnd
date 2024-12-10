@@ -25,9 +25,23 @@ namespace SkyEagle.Repositories.Implementations
 			return ProductToDTO(product);
 		}
 
-		public async Task<IEnumerable<ProductDTO>> GetAllAsync(CancellationToken ct = default)
+		public async Task<IEnumerable<ProductGridDTO>> GetAllAsync(CancellationToken ct = default)
 		{
-			return await _context.Products.AsNoTracking().Select(x => ProductToDTO(x, false)).ToListAsync(ct);
+			return await _context.Products.AsNoTracking().Select(product => new ProductGridDTO
+			{
+				Id = product.Id,
+				Name = product.Name,
+				Thumbnail = product.Thumbnail,
+				Price = product.Price,
+				Hot = product.Hot,
+				Area = product.ObjDetail != null ? product.ObjDetail.Area : null,
+				TimeUp = product.TimeUp,
+				Category = new()
+				{
+					Id = product.CategoryId!.Value,
+					Name = product.ObjCategory.Name
+				}
+			}).ToListAsync(ct);
 		}
 
 		public async Task<ProductDTO> AddAsync(ProductDTO productDTO, CancellationToken ct = default)

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SkyDTO;
+using SkyDTO.Commons;
 using SkyEagle.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace SkyEagle.Controllers
 		[HttpGet]
 		public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts(CancellationToken ct = default)
 		{
-			IEnumerable<ProductDTO> products = await _productRepository.GetAllAsync(ct);
+			IEnumerable<ProductGridDTO> products = await _productRepository.GetAllAsync(ct);
 			return Ok(products);
 		}
 
