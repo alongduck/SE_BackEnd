@@ -125,9 +125,11 @@ namespace SkyEagle.Repositories.Implementations
 
 		public async Task DeleteAsync(long id, CancellationToken ct = default)
 		{
-			Product? product = await _context.Products.FindAsync([id], cancellationToken: ct);
+			Product? product = await _context.Products.Include(p => p.ObjDetail).FirstOrDefaultAsync(x => x.Id == id, ct);
 			if (product != null)
 			{
+				if (product.ObjDetail != null)
+					_context.ProductDetails.Remove(product.ObjDetail);
 				_context.Products.Remove(product);
 				await _context.SaveChangesAsync(ct);
 			}
