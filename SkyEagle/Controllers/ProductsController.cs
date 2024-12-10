@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SkyDTO;
 using SkyDTO.Commons;
+using SkyEagle.Classes;
 using SkyEagle.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -19,10 +20,12 @@ namespace SkyEagle.Controllers
 
 		// GET: api/product
 		[HttpGet]
-		public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts(CancellationToken ct = default)
+		public async Task<IActionResult> GetProducts([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken ct = default)
 		{
-			IEnumerable<ProductGridDTO> products = await _productRepository.GetAllAsync(ct);
-			return Ok(products);
+			if (pageNumber <= 0 || pageSize <= 0)
+				return BadRequest("Số trang và size trang phải lớn hơn 0.");
+			PaginationResult<ProductGridDTO> result = await _productRepository.GetAllAsync(pageNumber, pageSize, ct);
+			return Ok(result);
 		}
 
 		// GET: api/product/5

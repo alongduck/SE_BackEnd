@@ -25,23 +25,31 @@ namespace SkyEagle.Repositories.Implementations
 			return ProductToDTO(product);
 		}
 
-		public async Task<IEnumerable<ProductGridDTO>> GetAllAsync(CancellationToken ct = default)
+		public async Task<PaginationResult<ProductGridDTO>> GetAllAsync(int pageNumber, int pageSize, CancellationToken ct = default)
 		{
-			return await _context.Products.AsNoTracking().Select(product => new ProductGridDTO
-			{
-				Id = product.Id,
-				Name = product.Name,
-				Thumbnail = product.Thumbnail,
-				Price = product.Price,
-				Hot = product.Hot,
-				Area = product.ObjDetail != null ? product.ObjDetail.Area : null,
-				TimeUp = product.TimeUp,
-				Category = new()
+			IQueryable<Product> query = _context.Products.AsNoTracking();
+			int totalCount = await query.CountAsync(ct);
+			List<ProductGridDTO> products = await query
+				.OrderByDescending(product => product.Id)
+				.Skip((pageNumber - 1) * pageSize)
+				.Take(pageSize)
+				.Select(product => new ProductGridDTO
 				{
-					Id = product.CategoryId!.Value,
-					Name = product.ObjCategory.Name
-				}
-			}).ToListAsync(ct);
+					Id = product.Id,
+					Name = product.Name,
+					Thumbnail = product.Thumbnail,
+					Price = product.Price,
+					Hot = product.Hot,
+					Area = product.ObjDetail != null ? product.ObjDetail.Area : null,
+					TimeUp = product.TimeUp,
+					Category = new()
+					{
+						Id = product.CategoryId!.Value,
+						Name = product.ObjCategory.Name
+					}
+				})
+				.ToListAsync(ct);
+			return new PaginationResult<ProductGridDTO>(products, totalCount, pageNumber, pageSize);
 		}
 
 		public async Task<ProductDTO> AddAsync(ProductDTO productDTO, CancellationToken ct = default)
