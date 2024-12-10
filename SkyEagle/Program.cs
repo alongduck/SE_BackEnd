@@ -8,6 +8,7 @@ using SkyEagle.Classes;
 using SkyEagle.Repositories.Implementations;
 using SkyEagle.Repositories.Interfaces;
 using SkyModel;
+using System;
 using System.Net;
 
 namespace SkyEagle;
@@ -38,6 +39,11 @@ public class Program
 			options.AddInterceptors(SkyDbContext.NoLock);
 		});
 		builder.Services.AddScoped<IProductRepository, ProductRepository>();
+		builder.Services.AddScoped<IMinIORepository, MinIORepository>();
+
+		// Set config cho minIO
+		MinIORepository.MinIOAccessKey = builder.Configuration["MinIO:AccessKey"] ?? throw new InvalidOperationException("The MinIO AccessKey is not configured. Please set the 'MinIO:AccessKey' configuration.");
+		MinIORepository.MinIOSecretKey = builder.Configuration["MinIO:SecretKey"] ?? throw new InvalidOperationException("The MinIO SecretKey is not configured. Please set the 'MinIO:SecretKey' configuration.");
 
 		WebApplication app = builder.Build();
 		INIT.ServiceProvider = app.Services;

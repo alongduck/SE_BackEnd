@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SkyDTO;
+using SkyDTO.Commons;
+using SkyEagle.Classes;
 using SkyEagle.Repositories.Interfaces;
 using SkyModel;
 using SkyModel.Models;
@@ -25,16 +27,16 @@ namespace SkyEagle.Repositories.Implementations
 
 		public async Task<IEnumerable<ProductDTO>> GetAllAsync(CancellationToken ct = default)
 		{
-			return await _context.Products.Select(x => ProductToDTO(x, false)).ToListAsync(ct);
+			return await _context.Products.AsNoTracking().Select(x => ProductToDTO(x, false)).ToListAsync(ct);
 		}
 
 		public async Task<ProductDTO> AddAsync(ProductDTO productDTO, CancellationToken ct = default)
 		{
 			// Validate khóa ngoại tồn tại
-			bool categoryExists = await _context.Categories.AnyAsync(x => x.Id == productDTO.CategoryId, ct);
+			bool categoryExists = await _context.Categories.AsNoTracking().AnyAsync(x => x.Id == productDTO.CategoryId, ct);
 			if (!categoryExists)
 				throw new ArgumentException("ID danh mục không tồn tại");
-			bool userExists = await _context.Users.AnyAsync(x => x.Id == productDTO.UserId, ct);
+			bool userExists = await _context.Users.AsNoTracking().AnyAsync(x => x.Id == productDTO.UserId, ct);
 			if (!userExists)
 				throw new ArgumentException("ID người dùng không tồn tại");
 
@@ -58,15 +60,30 @@ namespace SkyEagle.Repositories.Implementations
 						Width = productDetailDTO.Width,
 						Structure = productDetailDTO.Structure
 					};
+					_context.ProductDetails.Add(productDetail);
+					await _context.SaveChangesAsync(ct);
+
+					// Check nếu có hình thì update khóa ngoại detail vào
+					if (productDetailDTO.Images?.Count > 0)
+					{
+						List<long> imageIds = productDetailDTO.Images.Select(x => x.Id).ToList();
+						await _context.MinIOs
+							.Where(x => imageIds.Contains(x.Id))
+							.ExecuteUpdateAsync(s => s.SetProperty(m => m.ProductDetailId, productDetail.Id), ct);
+
+						// Load hình
+						productDetail.Images = await _context.MinIOs
+							.Where(x => x.ProductDetailId == productDetail.Id)
+							.ToListAsync(ct);
+					}
 				}
 				else
 				{
 					// Tạo mới detail
 					productDetail = new();
+					_context.ProductDetails.Add(productDetail);
+					await _context.SaveChangesAsync(ct);
 				}
-
-				_context.ProductDetails.Add(productDetail);
-				await _context.SaveChangesAsync(ct);
 
 				// Tạo sản phẩm mới
 				Product product = new()
@@ -119,6 +136,28 @@ namespace SkyEagle.Repositories.Implementations
 				product.ObjDetail.Length = productDetailDTO.Length;
 				product.ObjDetail.Width = productDetailDTO.Width;
 				product.ObjDetail.Structure = productDetailDTO.Structure;
+
+				if (productDetailDTO.Images?.Count > 0)
+				{
+					List<long> imageIds = productDetailDTO.Images.Select(x => x.Id).ToList();
+
+					// Remove những hình hiện tại
+					await _context.MinIOs
+						.Where(x => x.ProductDetailId == product.ObjDetail.Id && !imageIds.Contains(x.Id))
+						.ExecuteDeleteAsync(ct);
+
+					// Update những hình mới vào
+					await _context.MinIOs
+						.Where(x => imageIds.Contains(x.Id))
+						.ExecuteUpdateAsync(s => s.SetProperty(m => m.ProductDetailId, product.ObjDetail.Id), ct);
+				}
+				else
+				{
+					// Không có hình thì remove hết khóa ngoại hình đi
+					await _context.MinIOs
+						.Where(x => x.ProductDetailId == product.ObjDetail.Id)
+						.ExecuteDeleteAsync(ct);
+				}
 			}
 			await _context.SaveChangesAsync(ct);
 		}
@@ -137,7 +176,7 @@ namespace SkyEagle.Repositories.Implementations
 
 		public async Task<bool> ExistsAsync(long id, CancellationToken ct = default)
 		{
-			return await _context.Products.AnyAsync(e => e.Id == id, ct);
+			return await _context.Products.AsNoTracking().AnyAsync(e => e.Id == id, ct);
 		}
 
 		private static ProductDTO ProductToDTO(Product product, bool loadDetail = true) =>
@@ -165,7 +204,13 @@ namespace SkyEagle.Repositories.Implementations
 				Area = productDetail.Area,
 				Length = productDetail.Length,
 				Width = productDetail.Width,
-				Structure = productDetail.Structure
+				Structure = productDetail.Structure,
+				Images = productDetail.Images.Select((x, index) => new ImageDTO
+				{
+					Id = x.Id,
+					Src = CommonFunctions.GetMinIODisplayPath(x.Id),
+					Alt = $"Ảnh {index + 1}"
+				}).ToList()
 			};
 	}
 }

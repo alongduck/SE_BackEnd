@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SkyDTO.Commons;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace SkyDTO
 {
@@ -29,5 +31,8 @@ namespace SkyDTO
 
 		[Display(Name = "Kết cấu")]
 		public string? Structure { get; set; }
+
+		[Display(Name = "Hình ảnh")]
+		public List<ImageDTO>? Images { get; set; }
 	}
 }

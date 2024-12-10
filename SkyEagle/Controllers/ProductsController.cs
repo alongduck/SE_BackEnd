@@ -69,11 +69,7 @@ namespace SkyEagle.Controllers
 				ProductDTO createdProduct = await _productRepository.AddAsync(productDTO, ct);
 				return CreatedAtAction(nameof(GetProduct), new { id = createdProduct.Id }, createdProduct);
 			}
-			catch (ArgumentException ex)
-			{
-				return BadRequest(ex.Message);
-			}
-			catch (DbUpdateException ex)
+			catch (Exception ex)
 			{
 				return BadRequest(ex.Message);
 			}

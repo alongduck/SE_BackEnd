@@ -35,6 +35,6 @@ namespace SkyModel.Models
 		public new string? Structure { get; set; }
 
 		[InverseProperty(nameof(MinIO.ObjProductDetail))]
-		public virtual ICollection<MinIO> Images { get; set; } = [];
+		public new virtual ICollection<MinIO> Images { get; set; } = [];
 	}
 }
