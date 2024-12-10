@@ -11,7 +11,7 @@ namespace MyModels
     public partial class SkyDbContextModel
     {
         private SkyDbContextModel()
-            : base(skipDetectChanges: false, modelId: new Guid("f464eabc-a56f-4936-99ab-c46b801a0746"), entityTypeCount: 6)
+            : base(skipDetectChanges: false, modelId: new Guid("b5262653-3228-407e-a855-ea4127138cda"), entityTypeCount: 6)
         {
         }
 
@@ -29,7 +29,6 @@ namespace MyModels
             ProductEntityType.CreateForeignKey1(product, category);
             ProductEntityType.CreateForeignKey2(product, productDetail);
             ProductEntityType.CreateForeignKey3(product, user);
-            ProductDetailEntityType.CreateForeignKey1(productDetail, product);
 
             CategoryEntityType.CreateAnnotations(category);
             MinIOEntityType.CreateAnnotations(minIO);

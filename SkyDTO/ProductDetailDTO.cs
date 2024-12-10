@@ -6,36 +6,28 @@ namespace SkyDTO
 	{
 		public long Id { get; set; }
 
-		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Mô tả")]
-		public string Description { get; set; } = string.Empty;
+		public string? Description { get; set; }
 
-		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Địa chỉ")]
-		public string Address { get; set; } = string.Empty;
+		public string? Address { get; set; }
 
-		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Giá/m2")]
-		public double PricePerSquareMeter { get; set; }
+		public double? PricePerSquareMeter { get; set; }
 
-		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Tính năng")]
-		public string Features { get; set; } = string.Empty;
+		public string? Features { get; set; }
 
-		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Diện tích")]
-		public double Area { get; set; }
+		public double? Area { get; set; }
 
-		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Chiều dài")]
-		public double Length { get; set; }
+		public double? Length { get; set; }
 
-		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Chiều rộng")]
-		public double Width { get; set; }
+		public double? Width { get; set; }
 
-		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Kết cấu")]
-		public string Structure { get; set; } = string.Empty;
+		public string? Structure { get; set; }
 	}
 }

@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SkyEagle.Classes;
+using SkyEagle.Repositories.Implementations;
+using SkyEagle.Repositories.Interfaces;
 using SkyModel;
 using System.Net;
 
@@ -35,6 +37,7 @@ public class Program
 			options.UseLazyLoadingProxies().UseSqlServer(SkyDbContext.ConnectionString, x => x.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
 			options.AddInterceptors(SkyDbContext.NoLock);
 		});
+		builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 		WebApplication app = builder.Build();
 		INIT.ServiceProvider = app.Services;

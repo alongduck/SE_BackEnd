@@ -50,8 +50,7 @@ namespace MyModels
                 "DetailId",
                 typeof(long?),
                 propertyInfo: typeof(Product).GetProperty("DetailId", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                fieldInfo: typeof(Product).GetField("<DetailId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                nullable: true);
+                fieldInfo: typeof(Product).GetField("<DetailId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly));
             detailId.AddAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
 
             var hot = runtimeEntityType.AddProperty(
@@ -113,9 +112,7 @@ namespace MyModels
                 new[] { categoryId });
 
             var index0 = runtimeEntityType.AddIndex(
-                new[] { detailId },
-                unique: true);
-            index0.AddAnnotation("Relational:Filter", "[DetailId] IS NOT NULL");
+                new[] { detailId });
 
             var index1 = runtimeEntityType.AddIndex(
                 new[] { name });
@@ -159,14 +156,14 @@ namespace MyModels
                 principalEntityType.FindKey(new[] { principalEntityType.FindProperty("Id") }),
                 principalEntityType,
                 deleteBehavior: DeleteBehavior.ClientCascade,
-                unique: true);
+                required: true);
 
-            var objProductDetail = declaringEntityType.AddNavigation("ObjProductDetail",
+            var objDetail = declaringEntityType.AddNavigation("ObjDetail",
                 runtimeForeignKey,
                 onDependent: true,
                 typeof(ProductDetail),
-                propertyInfo: typeof(Product).GetProperty("ObjProductDetail", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                fieldInfo: typeof(Product).GetField("<ObjProductDetail>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                propertyInfo: typeof(Product).GetProperty("ObjDetail", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(Product).GetField("<ObjDetail>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 propertyAccessMode: PropertyAccessMode.Field);
 
             return runtimeForeignKey;

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SkyModel;
 
@@ -11,9 +12,11 @@ using SkyModel;
 namespace SkyModel.Migrations
 {
     [DbContext(typeof(SkyDbContext))]
-    partial class SkyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241210032205_2024121010")]
+    partial class _2024121010
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -138,7 +141,8 @@ namespace SkyModel.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("DetailId");
+                    b.HasIndex("DetailId")
+                        .IsUnique();
 
                     b.HasIndex("Name");
 
@@ -173,6 +177,9 @@ namespace SkyModel.Migrations
                     b.Property<double?>("PricePerSquareMeter")
                         .HasColumnType("float");
 
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Structure")
                         .HasColumnType("nvarchar(max)");
 
@@ -180,6 +187,8 @@ namespace SkyModel.Migrations
                         .HasColumnType("float");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
 
                     b.ToTable("ProductDetails");
                 });
@@ -243,8 +252,8 @@ namespace SkyModel.Migrations
                         .IsRequired();
 
                     b.HasOne("SkyModel.Models.ProductDetail", "ObjDetail")
-                        .WithMany()
-                        .HasForeignKey("DetailId")
+                        .WithOne()
+                        .HasForeignKey("SkyModel.Models.Product", "DetailId")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
@@ -259,6 +268,17 @@ namespace SkyModel.Migrations
                     b.Navigation("ObjDetail");
 
                     b.Navigation("ObjUser");
+                });
+
+            modelBuilder.Entity("SkyModel.Models.ProductDetail", b =>
+                {
+                    b.HasOne("SkyModel.Models.Product", "ObjProduct")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.ClientCascade)
+                        .IsRequired();
+
+                    b.Navigation("ObjProduct");
                 });
 
             modelBuilder.Entity("SkyModel.Models.Category", b =>

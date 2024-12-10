@@ -37,10 +37,11 @@ namespace SkyModel.Models
 		public new long? CategoryId { get; set; }
 
 		[ForeignKey(nameof(DetailId))]
-		public virtual ProductDetail ObjProductDetail { get; set; } = null!;
+		public virtual ProductDetail ObjDetail { get; set; } = null!;
 
+		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Chi tiết")]
-		public new long? DetailId { get; set; }
+		public long? DetailId { get; set; }
 
 		[ForeignKey(nameof(UserId))]
 		public virtual User ObjUser { get; set; } = null!;

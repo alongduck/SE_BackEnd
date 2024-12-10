@@ -28,9 +28,6 @@ namespace SkyDTO
 		[Display(Name = "Danh mục")]
 		public long? CategoryId { get; set; }
 
-		[Display(Name = "Chi tiết")]
-		public long? DetailId { get; set; }
-
 		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Người đăng")]
 		public long? UserId { get; set; }
