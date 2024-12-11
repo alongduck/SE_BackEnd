@@ -20,6 +20,7 @@ namespace MyModels
                 "SkyModel.Models.ProductDetail",
                 typeof(ProductDetail),
                 baseEntityType,
+                discriminatorValue: "ProductDetail",
                 propertyCount: 9,
                 navigationCount: 1,
                 servicePropertyCount: 1,

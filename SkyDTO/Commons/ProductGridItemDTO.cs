@@ -11,7 +11,7 @@ namespace SkyDTO.Commons
 		public string Name { get; set; } = string.Empty;
 
 		[Display(Name = "Thumbnail")]
-		public string? Thumbnail { get; set; }
+		public ImageDTO? Thumbnail { get; set; }
 
 		[Display(Name = "Giá")]
 		public double Price { get; set; }

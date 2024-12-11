@@ -36,10 +36,5 @@ namespace SkyModel.Models
 		public virtual ProductDetail? ObjProductDetail { get; set; }
 
 		public long? ProductDetailId { get; set; }
-
-		[ForeignKey(nameof(NewsArticleId))]
-		public virtual NewsArticle? ObjNewsArticle { get; set; }
-
-		public long? NewsArticleId { get; set; }
 	}
 }

@@ -16,9 +16,6 @@ namespace SkyModel.Models
 		[Display(Name = "Tên")]
 		public new string Name { get; set; } = string.Empty;
 
-		[Display(Name = "Thumbnail")]
-		public new string? Thumbnail { get; set; }
-
 		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Giá")]
 		public new double Price { get; set; }
@@ -49,5 +46,11 @@ namespace SkyModel.Models
 		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Người đăng")]
 		public new long? UserId { get; set; }
+
+		[ForeignKey(nameof(ThumbnailImageId))]
+		public virtual MinIO? ObjThumbnailImage { get; set; }
+
+		[Display(Name = "ID hình thumbnail")]
+		public new long? ThumbnailImageId { get; set; }
 	}
 }

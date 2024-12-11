@@ -23,10 +23,10 @@ namespace MyModels
                 typeof(Product),
                 baseEntityType,
                 propertyCount: 9,
-                navigationCount: 3,
+                navigationCount: 4,
                 servicePropertyCount: 1,
-                foreignKeyCount: 3,
-                unnamedIndexCount: 4,
+                foreignKeyCount: 4,
+                unnamedIndexCount: 5,
                 keyCount: 1);
 
             var id = runtimeEntityType.AddProperty(
@@ -76,13 +76,13 @@ namespace MyModels
                 sentinel: 0.0);
             price.AddAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
 
-            var thumbnail = runtimeEntityType.AddProperty(
-                "Thumbnail",
-                typeof(string),
-                propertyInfo: typeof(Product).GetProperty("Thumbnail", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                fieldInfo: typeof(Product).GetField("<Thumbnail>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+            var thumbnailImageId = runtimeEntityType.AddProperty(
+                "ThumbnailImageId",
+                typeof(long?),
+                propertyInfo: typeof(Product).GetProperty("ThumbnailImageId", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(Product).GetField("<ThumbnailImageId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 nullable: true);
-            thumbnail.AddAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
+            thumbnailImageId.AddAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
 
             var timeUp = runtimeEntityType.AddProperty(
                 "TimeUp",
@@ -118,6 +118,9 @@ namespace MyModels
                 new[] { name });
 
             var index2 = runtimeEntityType.AddIndex(
+                new[] { thumbnailImageId });
+
+            var index3 = runtimeEntityType.AddIndex(
                 new[] { userId });
 
             return runtimeEntityType;
@@ -170,6 +173,24 @@ namespace MyModels
         }
 
         public static RuntimeForeignKey CreateForeignKey3(RuntimeEntityType declaringEntityType, RuntimeEntityType principalEntityType)
+        {
+            var runtimeForeignKey = declaringEntityType.AddForeignKey(new[] { declaringEntityType.FindProperty("ThumbnailImageId") },
+                principalEntityType.FindKey(new[] { principalEntityType.FindProperty("Id") }),
+                principalEntityType,
+                deleteBehavior: DeleteBehavior.ClientCascade);
+
+            var objThumbnailImage = declaringEntityType.AddNavigation("ObjThumbnailImage",
+                runtimeForeignKey,
+                onDependent: true,
+                typeof(MinIO),
+                propertyInfo: typeof(Product).GetProperty("ObjThumbnailImage", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(Product).GetField("<ObjThumbnailImage>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                propertyAccessMode: PropertyAccessMode.Field);
+
+            return runtimeForeignKey;
+        }
+
+        public static RuntimeForeignKey CreateForeignKey4(RuntimeEntityType declaringEntityType, RuntimeEntityType principalEntityType)
         {
             var runtimeForeignKey = declaringEntityType.AddForeignKey(new[] { declaringEntityType.FindProperty("UserId") },
                 principalEntityType.FindKey(new[] { principalEntityType.FindProperty("Id") }),

@@ -42,7 +42,14 @@ namespace SkyEagle.Repositories.Implementations
 				{
 					Id = product.Id,
 					Name = product.Name,
-					Thumbnail = product.Thumbnail,
+					Thumbnail = product.ObjThumbnailImage != null
+					   ? new()
+					   {
+						   Id = product.ObjThumbnailImage.Id,
+						   Src = CommonFunctions.GetMinIODisplayPath(product.ObjThumbnailImage.Id),
+						   Alt = "Ảnh thumbnail"
+					   }
+					   : null,
 					Price = product.Price,
 					Hot = product.Hot,
 					Area = product.ObjDetail != null ? product.ObjDetail.Area : null,
@@ -59,14 +66,7 @@ namespace SkyEagle.Repositories.Implementations
 
 		public async Task<ProductDTO> AddAsync(ProductDTO productDTO, CancellationToken ct = default)
 		{
-			// Validate khóa ngoại tồn tại
-			bool categoryExists = await _context.Categories.AsNoTracking().AnyAsync(x => x.Id == productDTO.CategoryId, ct);
-			if (!categoryExists)
-				throw new ArgumentException("ID danh mục không tồn tại");
-			bool userExists = await _context.Users.AsNoTracking().AnyAsync(x => x.Id == productDTO.UserId, ct);
-			if (!userExists)
-				throw new ArgumentException("ID người dùng không tồn tại");
-
+			await ValidateProductAsync(productDTO, ct);
 			using var transaction = await _context.Database.BeginTransactionAsync(ct);
 			try
 			{
@@ -116,12 +116,12 @@ namespace SkyEagle.Repositories.Implementations
 				Product product = new()
 				{
 					Name = productDTO.Name,
-					Thumbnail = productDTO.Thumbnail,
 					Price = productDTO.Price,
 					Hot = productDTO.Hot,
 					TimeUp = productDTO.TimeUp,
 					CategoryId = productDTO.CategoryId,
 					UserId = productDTO.UserId,
+					ThumbnailImageId = productDTO.ThumbnailImageId,
 					DetailId = productDetail.Id
 				};
 				_context.Products.Add(product);
@@ -142,18 +142,51 @@ namespace SkyEagle.Repositories.Implementations
 
 		public async Task UpdateAsync(ProductDTO productDTO, CancellationToken ct = default)
 		{
+			await ValidateProductAsync(productDTO, ct);
 			using var transaction = await _context.Database.BeginTransactionAsync(ct);
 			try
 			{
-				Product product = await _context.Products.FindAsync([productDTO.Id], cancellationToken: ct)
+				Product product = await _context.Products.Include(x => x.ObjThumbnailImage).Include(x => x.ObjDetail).FirstOrDefaultAsync(x => x.Id == productDTO.Id, cancellationToken: ct)
 					?? throw new KeyNotFoundException($"Không tìm thấy sản phẩm");
 				product.Name = productDTO.Name;
-				product.Thumbnail = productDTO.Thumbnail;
 				product.Price = productDTO.Price;
 				product.Hot = productDTO.Hot;
 				product.TimeUp = productDTO.TimeUp;
 				product.CategoryId = productDTO.CategoryId;
 				product.UserId = productDTO.UserId;
+
+				// Check nếu có ThumbnailImageId
+				if (productDTO.ThumbnailImageId != null)
+				{
+					// Xóa ảnh cũ nếu id mới khác cũdiffers
+					if (product.ThumbnailImageId != productDTO.ThumbnailImageId)
+					{
+						if (product.ObjThumbnailImage != null)
+						{
+							await RemoveMinIOFileAsync(product.ObjThumbnailImage.FileName, ct);
+							product.ThumbnailImageId = null; // Set về null để delete MinIO
+							_context.MinIOs.Remove(product.ObjThumbnailImage);
+						}
+					}
+
+					// Update hình mới
+					product.ThumbnailImageId = productDTO.ThumbnailImageId;
+				}
+				else
+				{
+					// Nếu không có hình mới thì xóa hình cũ
+					if (product.ThumbnailImageId != null && product.ObjThumbnailImage != null)
+					{
+						await RemoveMinIOFileAsync(product.ObjThumbnailImage.FileName, ct);
+						product.ThumbnailImageId = null; // Set về null để delete MinIO
+						_context.MinIOs.Remove(product.ObjThumbnailImage);
+					}
+
+					// Set hình về null
+					product.ThumbnailImageId = null;
+				}
+
+
 				if (productDTO.Detail != null)
 				{
 					// Update detail từ api
@@ -214,27 +247,60 @@ namespace SkyEagle.Repositories.Implementations
 
 		public async Task DeleteAsync(long id, CancellationToken ct = default)
 		{
-			Product? product = await _context.Products.Include(p => p.ObjDetail).ThenInclude(d => d.Images).FirstOrDefaultAsync(x => x.Id == id, ct);
+			Product? product = await _context.Products.Include(p => p.ObjDetail).ThenInclude(d => d.Images).Include(p => p.ObjThumbnailImage).FirstOrDefaultAsync(x => x.Id == id, ct);
 			if (product != null)
 			{
-				if (product.ObjDetail != null)
+				// Xóa ảnh trong chi tiết sản phẩm
+				if (product.ObjDetail?.Images?.Count > 0)
 				{
-					if (product.ObjDetail.Images.Count > 0)
-					{
-						List<string> removedOnlineFilePaths = product.ObjDetail.Images.Select(x => x.FileName).ToList();
-						await RemoveMinIOFilesAsync(removedOnlineFilePaths, ct);
-						_context.MinIOs.RemoveRange(product.ObjDetail.Images);
-					}
-					_context.ProductDetails.Remove(product.ObjDetail);
+					List<string> removedDetailImagePaths = product.ObjDetail.Images.Select(x => x.FileName).ToList();
+					await RemoveMinIOFilesAsync(removedDetailImagePaths, ct);
+					_context.MinIOs.RemoveRange(product.ObjDetail.Images);
 				}
+
+				// Xóa ảnh thumbnail
+				if (product.ObjThumbnailImage != null)
+				{
+					await RemoveMinIOFileAsync(product.ObjThumbnailImage.FileName, ct);
+					_context.MinIOs.Remove(product.ObjThumbnailImage);
+				}
+
+				// Xóa chi tiết sản phẩm
+				if (product.ObjDetail != null)
+					_context.ProductDetails.Remove(product.ObjDetail);
+
+				// Xóa sản phẩm
 				_context.Products.Remove(product);
+
+				// Save
 				await _context.SaveChangesAsync(ct);
 			}
+		}
+
+		private async Task ValidateProductAsync(ProductDTO productDTO, CancellationToken ct)
+		{
+			// Check danh mục tồn tại
+			if (!await _context.Categories.AsNoTracking().AnyAsync(x => x.Id == productDTO.CategoryId, ct))
+				throw new ArgumentException("ID danh mục không tồn tại");
+
+			// Check user tồn tại
+			if (!await _context.Users.AsNoTracking().AnyAsync(x => x.Id == productDTO.UserId, ct))
+				throw new ArgumentException("ID người dùng không tồn tại");
+
+			// Check thumbnail tồn tại
+			if (productDTO.ThumbnailImageId.HasValue && !await _context.MinIOs.AsNoTracking().AnyAsync(x => x.Id == productDTO.ThumbnailImageId, ct))
+				throw new ArgumentException("ID thumbnail không tồn tại");
 		}
 
 		public async Task<bool> ExistsAsync(long id, CancellationToken ct = default)
 		{
 			return await _context.Products.AsNoTracking().AnyAsync(e => e.Id == id, ct);
+		}
+
+		private static async Task RemoveMinIOFileAsync(string removedOnlineFilePath, CancellationToken ct = default)
+		{
+			using MyMinIO myMinIO = MinIORepository.CreateMinIOInstance();
+			await myMinIO.RemoveFileAsync(removedOnlineFilePath, ct);
 		}
 
 		private static async Task RemoveMinIOFilesAsync(List<string> removedOnlineFilePaths, CancellationToken ct = default)
@@ -248,7 +314,14 @@ namespace SkyEagle.Repositories.Implementations
 		   {
 			   Id = product.Id,
 			   Name = product.Name,
-			   Thumbnail = product.Thumbnail,
+			   Thumbnail = product.ObjThumbnailImage != null
+				   ? new()
+				   {
+					   Id = product.ObjThumbnailImage.Id,
+					   Src = CommonFunctions.GetMinIODisplayPath(product.ObjThumbnailImage.Id),
+					   Alt = "Ảnh thumbnail"
+				   }
+				   : null,
 			   Price = product.Price,
 			   Hot = product.Hot,
 			   TimeUp = product.TimeUp,
@@ -273,7 +346,7 @@ namespace SkyEagle.Repositories.Implementations
 			{
 				Id = product.Id,
 				Name = product.Name,
-				Thumbnail = product.Thumbnail,
+				ThumbnailImageId = product.ThumbnailImageId,
 				Price = product.Price,
 				Hot = product.Hot,
 				TimeUp = product.TimeUp,

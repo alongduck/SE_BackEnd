@@ -12,9 +12,6 @@ namespace SkyDTO
 		[Display(Name = "Tên")]
 		public string Name { get; set; } = string.Empty;
 
-		[Display(Name = "Thumbnail")]
-		public string? Thumbnail { get; set; }
-
 		[Required(ErrorMessage = "{0} không được để trống")]
 		[Display(Name = "Giá")]
 		public double Price { get; set; }
@@ -36,5 +33,8 @@ namespace SkyDTO
 		[NotMapped]
 		[Display(Name = "Chi tiết")]
 		public ProductDetailDTO? Detail { get; set; }
+
+		[Display(Name = "ID hình thumbnail")]
+		public long? ThumbnailImageId { get; set; }
 	}
 }

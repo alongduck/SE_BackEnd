@@ -61,6 +61,10 @@ namespace SkyEagle.Controllers
 					return NotFound();
 				throw;
 			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
 		}
 
 		// POST: api/product

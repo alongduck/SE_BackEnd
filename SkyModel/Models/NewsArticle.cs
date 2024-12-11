@@ -1,6 +1,5 @@
 ﻿using SkyDTO;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -22,8 +21,9 @@ namespace SkyModel.Models
 		[Display(Name = "Ngày đăng")]
 		public new DateTime TimeUp { get; set; } = DateTime.Now;
 
+		[ForeignKey(nameof(ThumbnailImageId))]
+		public virtual MinIO? ThumbnailImage { get; set; }
 
-		[InverseProperty(nameof(MinIO.ObjNewsArticle))]
-		public virtual ICollection<MinIO> Images { get; set; } = [];
+		public long? ThumbnailImageId { get; set; }
 	}
 }

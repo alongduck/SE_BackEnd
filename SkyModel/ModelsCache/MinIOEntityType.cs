@@ -22,11 +22,11 @@ namespace MyModels
                 "SkyModel.Models.MinIO",
                 typeof(MinIO),
                 baseEntityType,
-                propertyCount: 7,
-                navigationCount: 2,
+                propertyCount: 6,
+                navigationCount: 1,
                 servicePropertyCount: 1,
-                foreignKeyCount: 2,
-                unnamedIndexCount: 2,
+                foreignKeyCount: 1,
+                unnamedIndexCount: 1,
                 keyCount: 1);
 
             var id = runtimeEntityType.AddProperty(
@@ -52,14 +52,6 @@ namespace MyModels
                 fieldInfo: typeof(MinIO).GetField("<FileName>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 maxLength: 128);
             fileName.AddAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
-
-            var newsArticleId = runtimeEntityType.AddProperty(
-                "NewsArticleId",
-                typeof(long?),
-                propertyInfo: typeof(MinIO).GetProperty("NewsArticleId", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                fieldInfo: typeof(MinIO).GetField("<NewsArticleId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                nullable: true);
-            newsArticleId.AddAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
 
             var productDetailId = runtimeEntityType.AddProperty(
                 "ProductDetailId",
@@ -95,41 +87,12 @@ namespace MyModels
             runtimeEntityType.SetPrimaryKey(key);
 
             var index = runtimeEntityType.AddIndex(
-                new[] { newsArticleId });
-
-            var index0 = runtimeEntityType.AddIndex(
                 new[] { productDetailId });
 
             return runtimeEntityType;
         }
 
         public static RuntimeForeignKey CreateForeignKey1(RuntimeEntityType declaringEntityType, RuntimeEntityType principalEntityType)
-        {
-            var runtimeForeignKey = declaringEntityType.AddForeignKey(new[] { declaringEntityType.FindProperty("NewsArticleId") },
-                principalEntityType.FindKey(new[] { principalEntityType.FindProperty("Id") }),
-                principalEntityType,
-                deleteBehavior: DeleteBehavior.ClientCascade);
-
-            var objNewsArticle = declaringEntityType.AddNavigation("ObjNewsArticle",
-                runtimeForeignKey,
-                onDependent: true,
-                typeof(NewsArticle),
-                propertyInfo: typeof(MinIO).GetProperty("ObjNewsArticle", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                fieldInfo: typeof(MinIO).GetField("<ObjNewsArticle>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                propertyAccessMode: PropertyAccessMode.Field);
-
-            var images = principalEntityType.AddNavigation("Images",
-                runtimeForeignKey,
-                onDependent: false,
-                typeof(ICollection<MinIO>),
-                propertyInfo: typeof(NewsArticle).GetProperty("Images", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                fieldInfo: typeof(NewsArticle).GetField("<Images>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                propertyAccessMode: PropertyAccessMode.Field);
-
-            return runtimeForeignKey;
-        }
-
-        public static RuntimeForeignKey CreateForeignKey2(RuntimeEntityType declaringEntityType, RuntimeEntityType principalEntityType)
         {
             var runtimeForeignKey = declaringEntityType.AddForeignKey(new[] { declaringEntityType.FindProperty("ProductDetailId") },
                 principalEntityType.FindKey(new[] { principalEntityType.FindProperty("Id") }),
