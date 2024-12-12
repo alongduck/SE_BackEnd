@@ -1,8 +1,9 @@
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SkyEagle.Classes;
 using SkyEagle.Repositories.Implementations;
@@ -29,7 +30,8 @@ public class Program
 			option.Listen(IPAddress.Any, 5042, listenOptions =>
 			{
 				listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2AndHttp3;
-				listenOptions.UseHttps();
+				if (builder.Environment.IsDevelopment())
+					listenOptions.UseHttps();
 			});
 		});
 		builder.Services.AddTransient<SkyDbContext>();
@@ -51,7 +53,9 @@ public class Program
 		db.Database.Migrate();
 		db.Dispose();
 
-		app.UseHttpsRedirection();
+		// Chỉ dùng HTTPS cho debug
+		if (app.Environment.IsDevelopment())
+			app.UseHttpsRedirection();
 		app.UseHsts();
 		app.UseRouting();
 		app.MapControllers();
