@@ -14,7 +14,9 @@ public class SkyDbContext : DbContext
 {
 	//public SkyDbContext() { }
 
-	public SkyDbContext(DbContextOptions<SkyDbContext> optionsBuilder) : base(optionsBuilder) { }
+	public SkyDbContext(DbContextOptions<SkyDbContext> optionsBuilder) : base(optionsBuilder)
+	{
+	}
 
 	//protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 	//{
