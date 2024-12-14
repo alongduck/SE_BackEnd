@@ -42,7 +42,6 @@ public class Program
 			option.Listen(IPAddress.Any, 5042, listenOptions =>
 			{
 				listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2AndHttp3;
-				listenOptions.UseHttps();
 			});
 #endif
 		});
