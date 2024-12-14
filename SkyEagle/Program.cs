@@ -10,7 +10,11 @@ using SkyEagle.Repositories.Implementations;
 using SkyEagle.Repositories.Interfaces;
 using SkyModel;
 using System;
+using System.Text.Json;
+
+#if RELEASE
 using System.Net;
+#endif
 
 namespace SkyEagle;
 
@@ -20,19 +24,27 @@ public class Program
 	{
 		WebApplicationBuilder builder = WebApplication.CreateSlimBuilder();
 		builder.Logging.SetMinimumLevel(LogLevel.None);
-		builder.Services.AddControllers();
+		builder.Services.AddControllers().AddJsonOptions(options =>
+		{
+			options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+			options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+			options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+			options.JsonSerializerOptions.ReferenceHandler = null;
+			options.JsonSerializerOptions.WriteIndented = false;
+		});
 		builder.Services.AddHttpContextAccessor();
 		builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 		builder.WebHost.UseKestrel(option =>
 		{
 			option.AddServerHeader = false;
 			option.Limits.MaxRequestBodySize = 10000000; // 10mb
+#if RELEASE
 			option.Listen(IPAddress.Any, 5042, listenOptions =>
 			{
 				listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2AndHttp3;
-				if (builder.Environment.IsDevelopment())
-					listenOptions.UseHttps();
+				listenOptions.UseHttps();
 			});
+#endif
 		});
 		builder.Services.AddTransient<SkyDbContext>();
 		builder.Services.AddPooledDbContextFactory<SkyDbContext>(options =>

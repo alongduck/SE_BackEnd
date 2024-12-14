@@ -9,10 +9,7 @@ public class BaseController : ControllerBase
 {
 	protected readonly IHttpContextAccessor httpContextAccessor;
 
-	public BaseController(IHttpContextAccessor contextAccessor)
-	{
-		httpContextAccessor = contextAccessor;
-	}
+	public BaseController(IHttpContextAccessor contextAccessor) => httpContextAccessor = contextAccessor;
 
 	protected StringValues GetHeader(string key)
 	{
