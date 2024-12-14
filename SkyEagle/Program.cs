@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SkyEagle.Classes;
 using SkyEagle.Repositories.Implementations;
 using SkyEagle.Repositories.Interfaces;
 using SkyModel;
@@ -58,9 +57,10 @@ public class Program
 		MinIORepository.MinIOAccessKey = builder.Configuration["MinIO:AccessKey"] ?? throw new InvalidOperationException("The MinIO AccessKey is not configured. Please set the 'MinIO:AccessKey' configuration.");
 		MinIORepository.MinIOSecretKey = builder.Configuration["MinIO:SecretKey"] ?? throw new InvalidOperationException("The MinIO SecretKey is not configured. Please set the 'MinIO:SecretKey' configuration.");
 
+		// migrate
 		WebApplication app = builder.Build();
-		INIT.ServiceProvider = app.Services;
-		SkyDbContext db = INIT.ServiceProvider.CreateDbContext();
+		IDbContextFactory<SkyDbContext> fac = app.Services.GetRequiredService<IDbContextFactory<SkyDbContext>>();
+		SkyDbContext db = fac.CreateDbContext();
 		db.Database.Migrate();
 		db.Dispose();
 
