@@ -10,7 +10,7 @@ public interface IProductRepository
 {
 	Task<ProductResponseDTO?> GetByIdAsync(long id, CancellationToken ct = default);
 
-	Task<PaginationResult<ProductGridItemDTO>> GetAllAsync(int pageNumber, int pageSize, string? search = null, CancellationToken ct = default);
+	Task<PaginationResult<ProductGridItemDTO>> GetAllAsync(PaginationReq paging, CancellationToken ct = default);
 
 	Task<ProductDTO> AddAsync(ProductDTO productDTO, CancellationToken ct = default);
 

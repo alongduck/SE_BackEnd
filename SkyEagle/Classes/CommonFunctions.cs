@@ -1,6 +1,6 @@
 ﻿namespace SkyEagle.Classes;
 
-public class CommonFunctions
+internal class CommonFunctions
 {
-	public static string GetMinIODisplayPath(long fileId) => $"{INIT.Domain}minio/file/{fileId}";
+	internal static string GetMinIODisplayPath(long fileId) => $"{INIT.Domain}minio/file/{fileId}";
 }

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 internal static class MyWebP
 {
 	/// <param name="quality">0 -> 100, null or 100 is lossless</param>
-	public static async Task<byte[]> EncodeFromMemoryStreamAsync(MemoryStream inputStream, int? quality = 80, CancellationToken ct = default)
+	internal static async Task<byte[]> EncodeFromMemoryStreamAsync(MemoryStream inputStream, int? quality = 80, CancellationToken ct = default)
 	{
 		inputStream.Position = 0;
 		using Image image = await Image.LoadAsync(inputStream, ct);

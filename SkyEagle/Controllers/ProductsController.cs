@@ -18,17 +18,14 @@ public class ProductsController(IProductRepository productRepository, IHttpConte
 {
 	private readonly IProductRepository _productRepository = productRepository;
 
-	// GET: api/product
 	[HttpGet]
-	public async Task<IActionResult> GetProducts([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, CancellationToken ct = default)
+	public async Task<IActionResult> GetProducts([FromQuery] PaginationReq paging, CancellationToken ct = default)
 	{
-		if (pageNumber <= 0 || pageSize <= 0)
-			return BadRequest("Số trang và size trang phải lớn hơn 0.");
-		PaginationResult<ProductGridItemDTO> result = await _productRepository.GetAllAsync(pageNumber, pageSize, search, ct);
+		paging.CheckValidate();
+		PaginationResult<ProductGridItemDTO> result = await _productRepository.GetAllAsync(paging, ct);
 		return Ok(result);
 	}
 
-	// GET: api/product/5
 	[HttpGet("{id}")]
 	public async Task<ActionResult<ProductResponseDTO>> GetProduct(long id, CancellationToken ct = default)
 	{
@@ -38,8 +35,6 @@ public class ProductsController(IProductRepository productRepository, IHttpConte
 		return product;
 	}
 
-	// PUT: api/product/5
-	// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 	[HttpPut("{id}")]
 	public async Task<IActionResult> PutProduct(long id, ProductDTO productDTO, CancellationToken ct = default)
 	{
@@ -67,8 +62,6 @@ public class ProductsController(IProductRepository productRepository, IHttpConte
 		}
 	}
 
-	// POST: api/product
-	// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 	[HttpPost]
 	public async Task<ActionResult<ProductDTO>> PostProduct(ProductDTO productDTO, CancellationToken ct = default)
 	{
@@ -83,7 +76,6 @@ public class ProductsController(IProductRepository productRepository, IHttpConte
 		}
 	}
 
-	// DELETE: api/product/5
 	[HttpDelete("{id}")]
 	public async Task<IActionResult> DeleteProduct(long id, CancellationToken ct = default)
 	{

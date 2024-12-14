@@ -1,5 +1,4 @@
 ﻿using Minio;
-using Minio.DataModel;
 using Minio.DataModel.Args;
 using Minio.DataModel.Response;
 using Minio.Exceptions;
@@ -18,26 +17,6 @@ internal class MyMinIO(string uri, string access, string secret, string bucket) 
 	private IMinioClient? _minIO;
 	private IMinioClient MinIO => _minIO ??= new MinioClient().WithEndpoint(URI).WithCredentials(Access, Secret).Build();
 
-	public async Task<PutObjectResponse?> UploadFileAsync(string onlineFilePath, string localFilePath, string contentType, CancellationToken ct = default)
-	{
-		// Upload a file to bucket.
-		PutObjectArgs putObjectArgs = new PutObjectArgs()
-			.WithBucket(Bucket)
-			.WithObject(onlineFilePath.Replace('\\', '/'))
-			.WithFileName(localFilePath)
-			.WithContentType(contentType);
-		try
-		{
-			PutObjectResponse response = await MinIO.PutObjectAsync(putObjectArgs, ct);
-			return response;
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex.Message);
-			return null;
-		}
-	}
-
 	public async Task<PutObjectResponse?> UploadFileAsync(string onlineFilePath, byte[] fileData, string contentType, CancellationToken ct = default)
 	{
 		// Upload a file to bucket using byte array.
@@ -51,25 +30,6 @@ internal class MyMinIO(string uri, string access, string secret, string bucket) 
 		try
 		{
 			PutObjectResponse response = await MinIO.PutObjectAsync(putObjectArgs, ct);
-			return response;
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex.Message);
-			return null;
-		}
-	}
-
-	public async Task<ObjectStat?> GetFileAsync(string onlineFilePath, string localFilePath, CancellationToken ct = default)
-	{
-		// Get a file from bucket.
-		GetObjectArgs args = new GetObjectArgs()
-				.WithBucket(Bucket)
-				.WithObject(onlineFilePath.Replace('\\', '/'))
-				.WithFile(localFilePath);
-		try
-		{
-			ObjectStat response = await MinIO.GetObjectAsync(args, ct);
 			return response;
 		}
 		catch (Exception ex)

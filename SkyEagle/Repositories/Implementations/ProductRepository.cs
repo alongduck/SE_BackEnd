@@ -25,19 +25,19 @@ public class ProductRepository(SkyDbContext context) : IProductRepository
 		return ProductToResponseDTO(product);
 	}
 
-	public async Task<PaginationResult<ProductGridItemDTO>> GetAllAsync(int pageNumber, int pageSize, string? search = null, CancellationToken ct = default)
+	public async Task<PaginationResult<ProductGridItemDTO>> GetAllAsync(PaginationReq paging, CancellationToken ct = default)
 	{
 		IQueryable<Product> query = _context.Products.AsNoTracking();
 
 		// Search nếu có key
-		if (!string.IsNullOrWhiteSpace(search))
-			query = query.Where(product => EF.Functions.Like(product.Name, $"%{search}%"));
+		if (!string.IsNullOrWhiteSpace(paging.Search))
+			query = query.Where(product => EF.Functions.Like(product.Name, $"%{paging.Search}%"));
 
 		int totalCount = await query.CountAsync(ct);
 		List<ProductGridItemDTO> products = await query
 			.OrderByDescending(product => product.Id)
-			.Skip((pageNumber - 1) * pageSize)
-			.Take(pageSize)
+			.Skip((paging.PageNumber - 1) * paging.PageSize)
+			.Take(paging.PageSize)
 			.Select(product => new ProductGridItemDTO
 			{
 				Id = product.Id,
@@ -61,7 +61,7 @@ public class ProductRepository(SkyDbContext context) : IProductRepository
 				}
 			})
 			.ToListAsync(ct);
-		return new PaginationResult<ProductGridItemDTO>(products, totalCount, pageNumber, pageSize);
+		return new PaginationResult<ProductGridItemDTO>(products, totalCount, paging.PageNumber, paging.PageSize);
 	}
 
 	public async Task<ProductDTO> AddAsync(ProductDTO productDTO, CancellationToken ct = default)
