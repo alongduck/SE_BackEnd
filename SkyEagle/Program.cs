@@ -31,9 +31,19 @@ public class Program
 			options.JsonSerializerOptions.ReferenceHandler = null;
 			options.JsonSerializerOptions.WriteIndented = false;
 		});
-		builder.Services.AddHttpContextAccessor();
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAllOrigins", builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            });
+        });
+        builder.Services.AddHttpContextAccessor();
 		builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-		builder.WebHost.UseKestrel(option =>
+
+        builder.WebHost.UseKestrel(option =>
 		{
 			option.AddServerHeader = false;
 			option.Limits.MaxRequestBodySize = 10000000; // 10mb
@@ -44,6 +54,7 @@ public class Program
 			});
 #endif
 		});
+
 		builder.Services.AddTransient<SkyDbContext>();
 		builder.Services.AddPooledDbContextFactory<SkyDbContext>(options =>
 		{
@@ -63,13 +74,13 @@ public class Program
 		SkyDbContext db = fac.CreateDbContext();
 		db.Database.Migrate();
 		db.Dispose();
+        app.UseCors("AllowAllOrigins"); // Use the CORS policy
 
-		// Chỉ dùng HTTPS cho debug
-		if (app.Environment.IsDevelopment())
+        if (app.Environment.IsDevelopment())
 			app.UseHttpsRedirection();
 		app.UseHsts();
 		app.UseRouting();
-		app.MapControllers();
+        app.MapControllers();
 		app.Run();
 	}
 }

@@ -1,0 +1,57 @@
+
+services:
+  # Backend (ASP.NET Core)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "82:82"
+    networks:
+      - app-network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=localhost,1433;Database=BackendDb;User=sa;Password=Password123; # MSSQL connection string
+      - Minio__Endpoint=minio:9000
+      - Minio__AccessKey=minioaccesskey
+      - Minio__SecretKey=miniosecretkey
+    depends_on:
+      - mssql
+      - minio
+
+  # MSSQL Server
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Password123
+    networks:
+      - app-network
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+
+  # MinIO
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      - MINIO_ACCESS_KEY=minioaccesskey
+      - MINIO_SECRET_KEY=miniosecretkey
+    networks:
+      - app-network
+    ports:
+      - "9000:9000"
+    volumes:
+      - minio-data:/data
+    command: server /data
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mssql-data:
+  minio-data:

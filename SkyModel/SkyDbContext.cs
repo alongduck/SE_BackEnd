@@ -26,11 +26,11 @@ public class SkyDbContext : DbContext
 
 	// DEBUG / RELEASE
 #if DEBUG
-	public const string ConnectionString = "data source=LENOVO227\\SQLEXPRESS;initial catalog=SkyEagle;trusted_connection=true;trustservercertificate=true";
+	public const string ConnectionString = "Data Source=TRUONGBIETTHU;Initial Catalog=MiniDB;Integrated Security=True;Trust Server Certificate=True";
 #else
 	public const string ConnectionString = "data source=192.168.1.101,4999;user id=dinogon;password=P@ssvv0rd;initial catalog=SkyEagle;encrypt=true;trustservercertificate=true";
 #endif
-	public static readonly NoLockInterceptor NoLock = new();
+    public static readonly NoLockInterceptor NoLock = new();
 	public string? Error;
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder) // chỉ khi composite keys
