@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SkyEagle.Repositories;
 using SkyEagle.Repositories.Implementations;
 using SkyEagle.Repositories.Interfaces;
 using SkyModel;
@@ -63,9 +64,11 @@ public class Program
 		});
 		builder.Services.AddScoped<IProductRepository, ProductRepository>();
 		builder.Services.AddScoped<IMinIORepository, MinIORepository>();
+        builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-		// Set config cho minIO
-		MinIORepository.MinIOAccessKey = builder.Configuration["MinIO:AccessKey"] ?? throw new InvalidOperationException("The MinIO AccessKey is not configured. Please set the 'MinIO:AccessKey' configuration.");
+        // Set config cho minIO
+        MinIORepository.MinIOAccessKey = builder.Configuration["MinIO:AccessKey"] ?? throw new InvalidOperationException("The MinIO AccessKey is not configured. Please set the 'MinIO:AccessKey' configuration.");
 		MinIORepository.MinIOSecretKey = builder.Configuration["MinIO:SecretKey"] ?? throw new InvalidOperationException("The MinIO SecretKey is not configured. Please set the 'MinIO:SecretKey' configuration.");
 
 		// migrate

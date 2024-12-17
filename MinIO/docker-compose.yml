@@ -1,0 +1,17 @@
+services:
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"  # Cổng API MinIO
+      - "9001:9001"  # Cổng giao diện web MinIO
+    environment:
+      MINIO_ACCESS_KEY: your-access-key  # Thay 'your-access-key' bằng khóa truy cập của bạn
+      MINIO_SECRET_KEY: your-secret-key  # Thay 'your-secret-key' bằng khóa bí mật của bạn
+    volumes:
+      - minio:/file  # Sử dụng volume 'minio-data' để lưu trữ dữ liệu
+    restart: always
+    command: server /data --console-address ":9001"
+
+volumes:
+  minio:  # Khai báo volume minio-data để Docker có thể sử dụng

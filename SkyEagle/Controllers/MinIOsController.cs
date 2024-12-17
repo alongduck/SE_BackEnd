@@ -32,7 +32,7 @@ public class MinIOsController(IMinIORepository minIORepository, IHttpContextAcce
 		return File(minIOFile.Value.Value, MediaTypeNames.Application.Octet, minIOFile.Value.Key);
 	}
 
-	// POST: api/minio/image
+	// POST:api/minio/image
 	[HttpPost("image")]
 	public async Task<IActionResult> UploadImage(IFormFile image, CancellationToken ct = default)
 	{
